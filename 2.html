@@ -161,6 +161,67 @@ body::before {
 main, .content, body > div:first-child {
     padding-top: 10vw !important;
 }
+</style><link crossorigin="" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+e2YkXo0s+U5qf3kq8u2kz1bq0p3q0m+q0y8b+4gI=" rel="stylesheet"/><style>
+/* MAP MODAL (v7) */
+#mapModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+#mapModalOverlay.show {
+  display: flex;
+  animation: modalFadeIn 220ms ease forwards;
+}
+#mapModalContainer {
+  width: 96vw;
+  max-width: 920px;
+  height: 86vh;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  transform: translateY(8px) scale(0.995);
+  opacity: 0;
+  animation: modalZoomIn 220ms ease forwards;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modalZoomIn {
+  from { transform: translateY(12px) scale(0.985); opacity:0; }
+  to { transform: translateY(0px) scale(1); opacity:1; }
+}
+#mapModalHeader {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 0.6rem 0.9rem;
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+#mapModalHeader h3 { margin:0; font-size: 4.6vw; }
+#mapModalHeader .actions { display:flex; gap:0.5rem; align-items:center; }
+.map-modal-btn {
+  background:#0b74de;
+  color:#fff;
+  border:none;
+  padding:0.45rem 0.7rem;
+  border-radius:10px;
+  font-size:3.8vw;
+}
+.map-modal-btn.secondary { background:#eee; color:#111; box-shadow:none; }
+#mapModalMap { width:100%; height: calc(86vh - 58px); }
+@media(min-width:700px){
+  #mapModalHeader h3 { font-size:18px; }
+  .map-modal-btn { font-size:14px; padding:6px 10px; border-radius:8px; }
+}
 </style></head>
 <body>
 <h1>Zagadka 2</h1>
@@ -309,6 +370,26 @@ main, .content, body > div:first-child {
     });
   });
   observer.observe(document.body, {childList:true, subtree:true});
+})();
+</script><div aria-hidden="true" id="mapModalOverlay"></div><script>(function(){
+  if(window.__zagadki_map_modal_installed) return;
+  window.__zagadki_map_modal_installed = true;
+  var leafletUrl = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  function ensureLeafletLoaded(cb){
+    if(window.L) return cb && cb();
+    var s = document.createElement('script'); s.src = leafletUrl; s.async = true; s.onload = function(){ cb && cb(); }; document.head.appendChild(s);
+  }
+  function ensureModalExists(){ if(document.getElementById('mapModalOverlay')) return; var overlay = document.createElement('div'); overlay.id='mapModalOverlay'; overlay.setAttribute('aria-hidden','true'); overlay.innerHTML = '\n      <div id="mapModalContainer" role="dialog" aria-modal="true" aria-label="Mapa">\n        <div id="mapModalHeader">\n          <h3>Wybierz punkt na mapie</h3>\n          <div class="actions">\n            <button class="map-modal-btn secondary" id="mapModalClear">Wyczyść</button>\n            <button class="map-modal-btn" id="mapModalConfirm">Zatwierdź</button>\n            <button class="map-modal-btn secondary" id="mapModalClose" aria-label="Zamknij">Zamknij</button>\n          </div>\n        </div>\n        <div id="mapModalMap" aria-hidden="false"></div>\n      </div>'; document.body.appendChild(overlay); }
+  var map, marker; var savedKey='zagadki_selected_point_v7';
+  function openModal(){ ensureModalExists(); var overlay=document.getElementById('mapModalOverlay'); overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); ensureLeafletLoaded(function(){ if(!map){ var defaultLat=51.2135, defaultLng=17.3850; map=L.map('mapModalMap',{zoomControl:true}).setView([defaultLat,defaultLng],16); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap contributors'}).addTo(map); map.on('click', function(e){ setMarker(e.latlng); }); } var raw=localStorage.getItem(savedKey); if(raw){ try{ var obj=JSON.parse(raw); setMarker(L.latLng(obj.lat,obj.lng)); map.setView([obj.lat,obj.lng],16);}catch(e){} } setTimeout(function(){ try{ map.invalidateSize(); if(marker && marker.openPopup) marker.openPopup(); }catch(e){} },120); }); }
+  function closeModal(){ var overlay=document.getElementById('mapModalOverlay'); if(!overlay) return; overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); document.activeElement && document.activeElement.blur && document.activeElement.blur(); }
+  function setMarker(latlng){ if(!map) return; if(marker){ marker.setLatLng(latlng); } else { marker = L.marker(latlng, { draggable:true }).addTo(map); marker.on('dragend', function(e){}); } }
+  function clearMarker(){ if(marker && map){ map.removeLayer(marker); marker=null; } }
+  function confirmMarker(){ if(!marker) return; var p=marker.getLatLng(); localStorage.setItem(savedKey, JSON.stringify({lat:p.lat, lng:p.lng})); }
+  document.addEventListener('click', function(e){ var t=e.target; if(!t) return; var btn = t.closest && t.closest('.map-button'); if(btn){ e.preventDefault && e.preventDefault(); openModal(); } }, false);
+  document.addEventListener('click', function(e){ var overlay=document.getElementById('mapModalOverlay'); if(!overlay || !overlay.classList.contains('show')) return; var container=document.getElementById('mapModalContainer'); if(container && !container.contains(e.target) && overlay.contains(e.target)){ closeModal(); } }, true);
+  document.addEventListener('click', function(e){ var id=(e.target && e.target.id) || (e.target && e.target.closest && e.target.closest('button') && e.target.closest('button').id); if(!id) return; if(id==='mapModalClose'){ closeModal(); } if(id==='mapModalClear'){ clearMarker(); localStorage.removeItem(savedKey); } if(id==='mapModalConfirm'){ confirmMarker(); } }, false);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ var overlay=document.getElementById('mapModalOverlay'); if(overlay && overlay.classList.contains('show')) closeModal(); } });
 })();
 </script></body>
 </html>
