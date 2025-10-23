@@ -86,58 +86,78 @@
       .map-button { width: 60px; height: 60px; font-size: 14px; }
     }
 </style>
+<!-- APPENDED MAP BUTTON STYLES (v5 safe restore) -->
+
 <style>
-    .map-button {
-        position: fixed;
-        top: 5vw;
-        right: 5vw;
-        background-color: white;
-        border: none;
-        border-radius: 50%;
-        font-size: 6vw;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        width: 14vw;
-        height: 14vw;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
+/* --- FINAL MAP BUTTON STYLES (vfinal) --- */
+.map-button {
+    position: fixed;
+    top: 2vw;
+    right: 2vw;
+    background-color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 6vw;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.28);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    width: 14vw;
+    height: 14vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    padding: 0;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+}
 
-    .map-button:hover, .map-button:active {
-        transform: scale(1.1);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-    }
+.map-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
 
-    /* Tooltip */
-    .map-tooltip {
-        visibility: hidden;
-        opacity: 0;
-        position: fixed;
-        background-color: rgba(0,0,0,0.75);
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 5px 10px;
-        top: 0;
-        right: 0;
-        transform: translate(-3vw, 2vw);
-        transition: opacity 0.3s ease;
-        font-size: 3.5vw;
-        z-index: 1001;
-    }
+/* Tooltip */
+.map-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: fixed;
+    background-color: rgba(0,0,0,0.8);
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 6px 10px;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-size: 3.8vw;
+    z-index: 1002;
+    pointer-events: none;
+    transform: translateY(0.5vw);
+}
 
-    .map-button.show-tooltip + .map-tooltip {
-        visibility: visible;
-        opacity: 1;
-    }
-    </style></head>
+/* When tooltip should show */
+.map-tooltip.visible {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Gentle top gradient for readability */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 12vw;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0));
+    pointer-events: none;
+    z-index: 500;
+}
+</style></head>
 <body>
 <h1>Witaj!</h1>
 <p>Zapraszamy na oleśnicką grę terenową!</p>
-<button aria-expanded="false" class="map-button" id="menuToggle">🗺️</button><div class="map-tooltip">Mapa</div>
+<button aria-expanded="false" aria-label="Otwórz mapę" class="map-button" id="menuToggle">🗺️</button><div class="map-tooltip">Mapa</div>
 <div aria-hidden="true" class="menu" id="menu">
 <img alt="Mapa" src="obraz.jpg"/>
 </div>
@@ -154,24 +174,90 @@
   </script>
 <a href="1.html"><button>Zaczynajmy!</button></a>
 <script>
-    const mapButton = document.querySelector('.map-button');
-    const tooltip = document.querySelector('.map-tooltip');
-    let tooltipTimeout;
+// Tooltip behaviour for map button
+(function(){
+  function setupTooltip(mapButton){
+    if(!mapButton) return;
+    // avoid adding twice
+    if(mapButton.__tooltip_setup) return;
+    mapButton.__tooltip_setup = true;
 
-    if (mapButton && tooltip) {
-        mapButton.addEventListener('touchstart', () => {
-            tooltipTimeout = setTimeout(() => {
-                mapButton.classList.add('show-tooltip');
-            }, 1000);
-        });
-        mapButton.addEventListener('touchend', () => {
-            clearTimeout(tooltipTimeout);
-            mapButton.classList.remove('show-tooltip');
-        });
-        mapButton.addEventListener('mouseleave', () => {
-            clearTimeout(tooltipTimeout);
-            mapButton.classList.remove('show-tooltip');
-        });
+    var tooltip = mapButton.nextElementSibling;
+    if(!tooltip || !tooltip.classList || !tooltip.classList.contains('map-tooltip')){
+      tooltip = document.createElement('div');
+      tooltip.className = 'map-tooltip';
+      tooltip.textContent = 'Mapa';
+      mapButton.parentNode.insertBefore(tooltip, mapButton.nextSibling);
     }
-    </script></body>
+
+    var timeout;
+    function show(){
+      timeout = setTimeout(function(){
+        tooltip.classList.add('visible');
+      }, 1000);
+    }
+    function hide(){
+      clearTimeout(timeout);
+      tooltip.classList.remove('visible');
+    }
+
+    mapButton.addEventListener('touchstart', show, {passive:true});
+    mapButton.addEventListener('mousedown', show);
+    mapButton.addEventListener('touchend', hide);
+    mapButton.addEventListener('mouseup', hide);
+    mapButton.addEventListener('mouseleave', hide);
+
+    // position tooltip above the button
+    function positionTooltip(){
+      var rect = mapButton.getBoundingClientRect();
+      tooltip.style.left = (rect.left + rect.width/2 - tooltip.offsetWidth/2) + 'px';
+      tooltip.style.top = (rect.top - tooltip.offsetHeight - 1.5*parseFloat(getComputedStyle(document.documentElement).fontSize)) + 'px';
+    }
+    window.addEventListener('resize', positionTooltip);
+    window.addEventListener('scroll', positionTooltip, true);
+    // observe to reposition after it's added to DOM
+    var obs = new MutationObserver(function(){ positionTooltip(); obs.disconnect(); });
+    obs.observe(document.body, {childList:true, subtree:true});
+    // initial call after short delay
+    setTimeout(positionTooltip,50);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    // try to find typical menu toggle/button candidates
+    var btn = document.querySelector('.map-button') || document.getElementById('menuToggle') || document.querySelector('button[aria-label*="map" i]') || document.querySelector('button:contains("Mapa")');
+    // if found, ensure it's styled and set emoji
+    if(btn){
+      btn.classList.add('map-button');
+      btn.setAttribute('aria-label', 'Otwórz mapę');
+      btn.textContent = '🗺️';
+      setupTooltip(btn);
+    }
+    // also scan for any other buttons that still contain text "Mapa"
+    var others = Array.from(document.querySelectorAll('button')).filter(b=>/Mapa/i.test(b.textContent) && !b.classList.contains('map-button'));
+    others.forEach(function(b){
+      b.classList.add('map-button');
+      b.setAttribute('aria-label','Otwórz mapę');
+      b.textContent = '🗺️';
+      setupTooltip(b);
+    });
+  });
+
+  // in case content is dynamically injected later, watch for new buttons
+  var observer = new MutationObserver(function(mutations){
+    mutations.forEach(function(m){
+      m.addedNodes && m.addedNodes.forEach(function(node){
+        if(node.nodeType===1){
+          var btn = node.querySelector && (node.querySelector('.map-button') || node.querySelector('button#menuToggle') );
+          if(btn){
+            btn.classList.add('map-button');
+            btn.textContent = '🗺️';
+            setupTooltip(btn);
+          }
+        }
+      });
+    });
+  });
+  observer.observe(document.body, {childList:true, subtree:true});
+})();
+</script></body>
 </html>
