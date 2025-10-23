@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zagadka 2 (liczbowa)</title>
+  <style>
+    body { 
+      font-family: Verdana, sans-serif; 
+      background-color: #f0f8ff; 
+      padding: 5vw; 
+      max-width: 600px; 
+      margin: auto; 
+      text-align: center;
+      position: relative;
+    }
+    h1 { font-size: 6vw; margin-bottom: 3vw; }
+    p { font-size: 4.5vw; margin-bottom: 4vw; }
+    input[type="text"], input[type="number"] { 
+      width: 90%; 
+      padding: 3vw; 
+      font-size: 4.5vw;
+      border-radius: 8px;
+      border: 1px solid #007acc;
+    }
+    button { 
+      margin-top: 4vw; 
+      background-color: #007acc; 
+      color: white; 
+      border: none; 
+      padding: 3vw 6vw; 
+      border-radius: 10px; 
+      font-size: 4.5vw;
+      cursor: pointer;
+    }
+    .map-button {
+      position: fixed;
+      top: 3vw;
+      right: 3vw;
+      width: 14vw;
+      height: 14vw;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 4vw;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 1000;
+      transition: background-color 0.3s;
+    }
+    .map-button:hover {
+      background-color: #005f99;
+    }
+    .menu {
+      position: fixed;
+      top: 20vw;
+      right: 5vw;
+      left: 5vw;
+      background: rgba(255,255,255,0.95);
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 400ms ease, padding 300ms ease;
+      padding: 0 4vw;
+      text-align: center;
+    }
+    .menu.open {
+      padding: 3vw 4vw;
+      max-height: 80vh;
+    }
+    .menu img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+    label { display: block; margin: 2vw 0; text-align: left; font-size: 4.5vw; }
+    .correct { color: green; font-size: 4.5vw; }
+    .wrong { color: red; font-size: 4.5vw; }
+    .hidden { display: none; }
+    @media (min-width: 700px) {
+      h1 { font-size: 28px; }
+      p, input, button, label { font-size: 18px; }
+      input { padding: 10px; }
+      .map-button { width: 60px; height: 60px; font-size: 14px; }
+    }
+</style>
+</head>
+<body>
+  <h1>Zagadka 2</h1>
+  <p>Ile nóg mają razem trzy koty?</p>
+
+  
+  <button class="map-button" id="menuToggle" aria-expanded="false">Mapa</button>
+  <div class="menu" id="menu" aria-hidden="true">
+    <img src="obraz.jpg" alt="Mapa">
+  </div>
+
+  <script>
+    (function() {
+      const toggle = document.getElementById('menuToggle');
+      const menu = document.getElementById('menu');
+      toggle.addEventListener('click', () => {
+        const isOpen = menu.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        menu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      });
+    })();
+  </script>
+
+
+  <input type="number" id="answer" placeholder="Wpisz liczbę">
+  <br>
+  <button id="checkBtn" onclick="checkAnswer()">Sprawdź</button>
+
+  <p id="message" class="hidden"></p>
+  <div id="next" class="hidden"></div>
+
+  <script>
+    const correctAnswer = 12;
+    let attempts = 0;
+    const maxAttempts = 3;
+    const answerInput = document.getElementById("answer");
+    const message = document.getElementById("message");
+    const next = document.getElementById("next");
+    const checkBtn = document.getElementById("checkBtn");
+
+    function endGame(hasLetter) {
+      answerInput.disabled = true;
+      checkBtn.classList.add("hidden");
+      if (hasLetter) {
+        next.innerHTML = '<p class="correct">Litera do hasła: <strong>K</strong></p><a href="3.html"><button>Dalej</button></a>';
+      } else {
+        next.innerHTML = '<a href="3.html"><button>Dalej</button></a>';
+      }
+      next.classList.remove("hidden");
+    }
+
+    function checkAnswer() {
+      const userAnswer = Number(answerInput.value.trim());
+      attempts++;
+
+      if (userAnswer === correctAnswer) {
+        message.classList.add("hidden");
+        endGame(true);
+      } else if (attempts < maxAttempts) {
+        message.textContent = `Niepoprawna odpowiedź! Pozostało prób: ${maxAttempts - attempts}.`;
+        message.className = "wrong";
+        message.classList.remove("hidden");
+      } else {
+        message.textContent = "Wykorzystałeś wszystkie próby.";
+        message.className = "wrong";
+        message.classList.remove("hidden");
+        endGame(false);
+      }
+    }
+  </script>
+</body>
+</html>
