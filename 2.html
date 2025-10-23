@@ -222,7 +222,52 @@ main, .content, body > div:first-child {
   #mapModalHeader h3 { font-size:18px; }
   .map-modal-btn { font-size:14px; padding:6px 10px; border-radius:8px; }
 }
-</style></head>
+</style><style>
+/* V7.1 overlay fix */
+#mapModalOverlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+#mapModalOverlay.show {
+  display: flex;
+}
+/* background layer is a pseudo-element so it doesn't block pointer events */
+#mapModalOverlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.32);
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  z-index: 2005;
+}
+#mapModalContainer {
+  position: relative;
+  z-index: 2010;
+  width: 96vw;
+  max-width: 920px;
+  height: 86vh;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  transform: translateY(8px) scale(0.995);
+  opacity: 0;
+  animation: modalZoomIn 220ms ease forwards;
+  pointer-events: auto;
+}
+/* keep old animations */
+@keyframes modalZoomIn {
+  from { transform: translateY(12px) scale(0.985); opacity:0; }
+  to { transform: translateY(0px) scale(1); opacity:1; }
+}
+
+/* V7.1 overlay fix */</style></head>
 <body>
 <h1>Zagadka 2</h1>
 <p>Ile nóg mają razem trzy koty?</p>
