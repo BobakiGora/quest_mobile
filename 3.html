@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="pl">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Zagadka 3 (quiz)</title>
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zagadka 3 (quiz)</title>
+  <style>
     body { 
       font-family: Verdana, sans-serif; 
       background-color: #f0f8ff; 
@@ -24,7 +23,7 @@
       border-radius: 8px;
       border: 1px solid #007acc;
     }
-    button { 
+    button.main { 
       margin-top: 4vw; 
       background-color: #007acc; 
       color: white; 
@@ -36,45 +35,57 @@
     }
     .map-button {
       position: fixed;
-      top: 3vw;
-      right: 3vw;
+      top: 5vw;
+      right: 5vw;
       width: 14vw;
       height: 14vw;
       background-color: #007acc;
       color: white;
       border: none;
       border-radius: 50%;
-      font-size: 4vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
       z-index: 1000;
-      transition: background-color 0.3s;
+      transition: transform 120ms ease, background-color 0.2s;
     }
-    .map-button:hover {
-      background-color: #005f99;
+    .map-button:active { transform: scale(0.96); }
+    .map-button svg { width: 60%; height: 60%; fill: white; }
+    .tooltip {
+      position: fixed;
+      top: calc(5vw - 3.5vw);
+      right: calc(5vw + 14vw + 2vw);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 0.6vw 1.2vw;
+      border-radius: 6px;
+      font-size: 3.5vw;
+      opacity: 0;
+      transform-origin: right top;
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+      z-index: 1001;
     }
+    .tooltip.show { opacity: 1; transform: translateY(0); }
     .menu {
       position: fixed;
       top: 20vw;
       right: 5vw;
       left: 5vw;
-      background: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.98);
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
       overflow: hidden;
       max-height: 0;
-      transition: max-height 400ms ease, padding 300ms ease;
+      transition: max-height 420ms cubic-bezier(.2,.9,.2,1), padding 300ms ease;
       padding: 0 4vw;
       text-align: center;
+      z-index: 999;
     }
-    .menu.open {
-      padding: 3vw 4vw;
-      max-height: 80vh;
-    }
-    .menu img {
-      max-width: 100%;
-      border-radius: 8px;
-    }
+    .menu.open { padding: 3vw 4vw; max-height: 80vh; }
+    .menu img { max-width: 100%; border-radius: 8px; display:block; margin:0 auto; }
     label { display: block; margin: 2vw 0; text-align: left; font-size: 4.5vw; }
     .correct { color: green; font-size: 4.5vw; }
     .wrong { color: red; font-size: 4.5vw; }
@@ -83,220 +94,85 @@
       h1 { font-size: 28px; }
       p, input, button, label { font-size: 18px; }
       input { padding: 10px; }
-      .map-button { width: 60px; height: 60px; font-size: 14px; }
+      .map-button { width: 60px; height: 60px; }
+      .tooltip { font-size: 14px; top: 12px; right: 80px; }
     }
 </style>
-<!-- APPENDED MAP BUTTON STYLES (v5 safe restore) -->
-<style>
-/* --- FINAL MAP BUTTON STYLES (vfinal) --- */
-.map-button {
-    position: fixed;
-    top: 2vw;
-    right: 2vw;
-    background-color: white;
-    border: none;
-    border-radius: 50%;
-    font-size: 6vw;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.28);
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    width: 14vw;
-    height: 14vw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1001;
-    padding: 0;
-    line-height: 1;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.map-button:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-/* Tooltip */
-.map-tooltip {
-    visibility: hidden;
-    opacity: 0;
-    position: fixed;
-    background-color: rgba(0,0,0,0.8);
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 6px 10px;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    font-size: 3.8vw;
-    z-index: 1002;
-    pointer-events: none;
-    transform: translateY(0.5vw);
-}
-
-/* When tooltip should show */
-.map-tooltip.visible {
-    visibility: visible;
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Gentle top gradient for readability */
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 12vw;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0));
-    pointer-events: none;
-    z-index: 500;
-}
-</style><style>
-/* --- MAP BUTTON SPACING TWEAK (v6) --- */
-.map-button {
-    top: 3.5vw !important;
-    right: 3.5vw !important;
-}
-main, .content, body > div:first-child {
-    padding-top: 10vw !important;
-}
-</style><link crossorigin="" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+e2YkXo0s+U5qf3kq8u2kz1bq0p3q0m+q0y8b+4gI=" rel="stylesheet"/><style>
-/* MAP MODAL (v7) */
-#mapModalOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-}
-#mapModalOverlay.show {
-  display: flex;
-  animation: modalFadeIn 220ms ease forwards;
-}
-#mapModalContainer {
-  width: 96vw;
-  max-width: 920px;
-  height: 86vh;
-  background: #fff;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
-  transform: translateY(8px) scale(0.995);
-  opacity: 0;
-  animation: modalZoomIn 220ms ease forwards;
-}
-@keyframes modalFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes modalZoomIn {
-  from { transform: translateY(12px) scale(0.985); opacity:0; }
-  to { transform: translateY(0px) scale(1); opacity:1; }
-}
-#mapModalHeader {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding: 0.6rem 0.9rem;
-  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-}
-#mapModalHeader h3 { margin:0; font-size: 4.6vw; }
-#mapModalHeader .actions { display:flex; gap:0.5rem; align-items:center; }
-.map-modal-btn {
-  background:#0b74de;
-  color:#fff;
-  border:none;
-  padding:0.45rem 0.7rem;
-  border-radius:10px;
-  font-size:3.8vw;
-}
-.map-modal-btn.secondary { background:#eee; color:#111; box-shadow:none; }
-#mapModalMap { width:100%; height: calc(86vh - 58px); }
-@media(min-width:700px){
-  #mapModalHeader h3 { font-size:18px; }
-  .map-modal-btn { font-size:14px; padding:6px 10px; border-radius:8px; }
-}
-</style><style>
-/* V7.1 overlay fix */
-#mapModalOverlay {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-#mapModalOverlay.show {
-  display: flex;
-}
-/* background layer is a pseudo-element so it doesn't block pointer events */
-#mapModalOverlay::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.32);
-  pointer-events: none;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-  z-index: 2005;
-}
-#mapModalContainer {
-  position: relative;
-  z-index: 2010;
-  width: 96vw;
-  max-width: 920px;
-  height: 86vh;
-  background: #fff;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
-  transform: translateY(8px) scale(0.995);
-  opacity: 0;
-  animation: modalZoomIn 220ms ease forwards;
-  pointer-events: auto;
-}
-/* keep old animations */
-@keyframes modalZoomIn {
-  from { transform: translateY(12px) scale(0.985); opacity:0; }
-  to { transform: translateY(0px) scale(1); opacity:1; }
-}
-
-/* V7.1 overlay fix */</style></head>
+</head>
 <body>
-<h1>Zagadka 3</h1>
-<p>Które z poniższych zwierząt potrafi latać?</p>
-<button aria-expanded="false" aria-label="Otwórz mapę" class="map-button" id="menuToggle">🗺️</button><div class="map-tooltip">Mapa</div>
-<div aria-hidden="true" class="menu" id="menu">
-<img alt="Mapa" src="obraz.jpg"/>
-</div>
-<script>
+  <h1>Zagadka 3</h1>
+  <p>Które z poniższych zwierząt potrafi latać?</p>
+
+  
+  <button class="map-button" id="menuToggle" aria-expanded="false" aria-label="Mapa">
+    <!-- SVG map icon -->
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M20.5 3l-5.3 2.2L9 3 3.5 5v15l6.2-2.5L15 20l5.5-2.5V3zM9 5.1l5.5 1.9 5-2.1v11.6l-5 2.3L9 17.9V5.1z"></path>
+    </svg>
+  </button>
+  <div class="tooltip" id="mapTooltip" role="status" aria-hidden="true">Mapa</div>
+  <div class="menu" id="menu" aria-hidden="true">
+    <img src="obraz.jpg" alt="Mapa">
+  </div>
+
+  <script>
     (function() {
       const toggle = document.getElementById('menuToggle');
       const menu = document.getElementById('menu');
-      toggle.addEventListener('click', () => {
+      const tooltip = document.getElementById('mapTooltip');
+      let tooltipTimeout;
+
+      function showTooltip() {
+        tooltip.classList.add('show');
+        tooltip.setAttribute('aria-hidden','false');
+        clearTimeout(tooltipTimeout);
+        tooltipTimeout = setTimeout(() => {
+          tooltip.classList.remove('show');
+          tooltip.setAttribute('aria-hidden','true');
+        }, 1600);
+      }
+
+      toggle.addEventListener('mouseenter', showTooltip);
+      toggle.addEventListener('focus', showTooltip);
+      // touch: show tooltip briefly on first tap
+      toggle.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        showTooltip();
+      }, {passive:true});
+
+      toggle.addEventListener('click', (e) => {
         const isOpen = menu.classList.toggle('open');
         toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         menu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
       });
+
+      // close menu when tapping outside
+      document.addEventListener('click', (e) => {
+        if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+          if (menu.classList.contains('open')) {
+            menu.classList.remove('open');
+            toggle.setAttribute('aria-expanded','false');
+            menu.setAttribute('aria-hidden','true');
+          }
+        }
+      });
     })();
   </script>
-<form id="quiz" style="display: inline-block; text-align: left; width: 90%;">
-<label><input name="answer" type="radio" value="A"/> A) Kot</label>
-<label><input name="answer" type="radio" value="B"/> B) Nietoperz</label>
-<label><input name="answer" type="radio" value="C"/> C) Delfin</label>
-<label><input name="answer" type="radio" value="D"/> D) Żółw</label>
-</form>
-<br/>
-<button id="checkBtn" onclick="checkAnswer()">Sprawdź</button>
-<p class="hidden" id="message"></p>
-<div class="hidden" id="next"></div>
-<script>
+
+
+  <form id="quiz" style="display: inline-block; text-align: left; width: 90%;">
+    <label><input type="radio" name="answer" value="A"> A) Kot</label>
+    <label><input type="radio" name="answer" value="B"> B) Nietoperz</label>
+    <label><input type="radio" name="answer" value="C"> C) Delfin</label>
+    <label><input type="radio" name="answer" value="D"> D) Żółw</label>
+  </form>
+  <br>
+  <button id="checkBtn" class="main" onclick="checkAnswer()">Sprawdź</button>
+
+  <p id="message" class="hidden"></p>
+  <div id="next" class="hidden"></div>
+
+  <script>
     const correctAnswer = "B";
     let attempts = 0;
     const maxAttempts = 2;
@@ -314,9 +190,9 @@ main, .content, body > div:first-child {
       disableQuiz();
       if (hasLetter) {
         message.classList.add("hidden");
-        next.innerHTML = '<p class="correct">Litera do hasła: <strong>T</strong></p><a href="4.html"><button>Dalej</button></a>';
+        next.innerHTML = '<p class="correct">Litera do hasła: <strong>T</strong></p><a href="4.html"><button class="main">Dalej</button></a>';
       } else {
-        next.innerHTML = '<a href="4.html"><button>Dalej</button></a>';
+        next.innerHTML = '<a href="4.html"><button class="main">Dalej</button></a>';
       }
       next.classList.remove("hidden");
     }
@@ -335,7 +211,7 @@ main, .content, body > div:first-child {
         message.classList.add("hidden");
         endGame(true);
       } else if (attempts < maxAttempts) {
-        message.textContent = `Błędna odpowiedź! Pozostało prób: ${maxAttempts - attempts}.`;
+        message.textContent = "Błędna odpowiedź! Pozostało prób: " + (maxAttempts - attempts) + ".";
         message.className = "wrong";
         message.classList.remove("hidden");
       } else {
@@ -346,111 +222,5 @@ main, .content, body > div:first-child {
       }
     }
   </script>
-<script>
-// Tooltip behaviour for map button
-(function(){
-  function setupTooltip(mapButton){
-    if(!mapButton) return;
-    // avoid adding twice
-    if(mapButton.__tooltip_setup) return;
-    mapButton.__tooltip_setup = true;
-
-    var tooltip = mapButton.nextElementSibling;
-    if(!tooltip || !tooltip.classList || !tooltip.classList.contains('map-tooltip')){
-      tooltip = document.createElement('div');
-      tooltip.className = 'map-tooltip';
-      tooltip.textContent = 'Mapa';
-      mapButton.parentNode.insertBefore(tooltip, mapButton.nextSibling);
-    }
-
-    var timeout;
-    function show(){
-      timeout = setTimeout(function(){
-        tooltip.classList.add('visible');
-      }, 1000);
-    }
-    function hide(){
-      clearTimeout(timeout);
-      tooltip.classList.remove('visible');
-    }
-
-    mapButton.addEventListener('touchstart', show, {passive:true});
-    mapButton.addEventListener('mousedown', show);
-    mapButton.addEventListener('touchend', hide);
-    mapButton.addEventListener('mouseup', hide);
-    mapButton.addEventListener('mouseleave', hide);
-
-    // position tooltip above the button
-    function positionTooltip(){
-      var rect = mapButton.getBoundingClientRect();
-      tooltip.style.left = (rect.left + rect.width/2 - tooltip.offsetWidth/2) + 'px';
-      tooltip.style.top = (rect.top - tooltip.offsetHeight - 1.5*parseFloat(getComputedStyle(document.documentElement).fontSize)) + 'px';
-    }
-    window.addEventListener('resize', positionTooltip);
-    window.addEventListener('scroll', positionTooltip, true);
-    // observe to reposition after it's added to DOM
-    var obs = new MutationObserver(function(){ positionTooltip(); obs.disconnect(); });
-    obs.observe(document.body, {childList:true, subtree:true});
-    // initial call after short delay
-    setTimeout(positionTooltip,50);
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    // try to find typical menu toggle/button candidates
-    var btn = document.querySelector('.map-button') || document.getElementById('menuToggle') || document.querySelector('button[aria-label*="map" i]') || document.querySelector('button:contains("Mapa")');
-    // if found, ensure it's styled and set emoji
-    if(btn){
-      btn.classList.add('map-button');
-      btn.setAttribute('aria-label', 'Otwórz mapę');
-      btn.textContent = '🗺️';
-      setupTooltip(btn);
-    }
-    // also scan for any other buttons that still contain text "Mapa"
-    var others = Array.from(document.querySelectorAll('button')).filter(b=>/Mapa/i.test(b.textContent) && !b.classList.contains('map-button'));
-    others.forEach(function(b){
-      b.classList.add('map-button');
-      b.setAttribute('aria-label','Otwórz mapę');
-      b.textContent = '🗺️';
-      setupTooltip(b);
-    });
-  });
-
-  // in case content is dynamically injected later, watch for new buttons
-  var observer = new MutationObserver(function(mutations){
-    mutations.forEach(function(m){
-      m.addedNodes && m.addedNodes.forEach(function(node){
-        if(node.nodeType===1){
-          var btn = node.querySelector && (node.querySelector('.map-button') || node.querySelector('button#menuToggle') );
-          if(btn){
-            btn.classList.add('map-button');
-            btn.textContent = '🗺️';
-            setupTooltip(btn);
-          }
-        }
-      });
-    });
-  });
-  observer.observe(document.body, {childList:true, subtree:true});
-})();
-</script><div aria-hidden="true" id="mapModalOverlay"></div><script>(function(){
-  if(window.__zagadki_map_modal_installed) return;
-  window.__zagadki_map_modal_installed = true;
-  var leafletUrl = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-  function ensureLeafletLoaded(cb){
-    if(window.L) return cb && cb();
-    var s = document.createElement('script'); s.src = leafletUrl; s.async = true; s.onload = function(){ cb && cb(); }; document.head.appendChild(s);
-  }
-  function ensureModalExists(){ if(document.getElementById('mapModalOverlay')) return; var overlay = document.createElement('div'); overlay.id='mapModalOverlay'; overlay.setAttribute('aria-hidden','true'); overlay.innerHTML = '\n      <div id="mapModalContainer" role="dialog" aria-modal="true" aria-label="Mapa">\n        <div id="mapModalHeader">\n          <h3>Wybierz punkt na mapie</h3>\n          <div class="actions">\n            <button class="map-modal-btn secondary" id="mapModalClear">Wyczyść</button>\n            <button class="map-modal-btn" id="mapModalConfirm">Zatwierdź</button>\n            <button class="map-modal-btn secondary" id="mapModalClose" aria-label="Zamknij">Zamknij</button>\n          </div>\n        </div>\n        <div id="mapModalMap" aria-hidden="false"></div>\n      </div>'; document.body.appendChild(overlay); }
-  var map, marker; var savedKey='zagadki_selected_point_v7';
-  function openModal(){ ensureModalExists(); var overlay=document.getElementById('mapModalOverlay'); overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); ensureLeafletLoaded(function(){ if(!map){ var defaultLat=51.2135, defaultLng=17.3850; map=L.map('mapModalMap',{zoomControl:true}).setView([defaultLat,defaultLng],16); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap contributors'}).addTo(map); map.on('click', function(e){ setMarker(e.latlng); }); } var raw=localStorage.getItem(savedKey); if(raw){ try{ var obj=JSON.parse(raw); setMarker(L.latLng(obj.lat,obj.lng)); map.setView([obj.lat,obj.lng],16);}catch(e){} } setTimeout(function(){ try{ map.invalidateSize(); if(marker && marker.openPopup) marker.openPopup(); }catch(e){} },120); }); }
-  function closeModal(){ var overlay=document.getElementById('mapModalOverlay'); if(!overlay) return; overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); document.activeElement && document.activeElement.blur && document.activeElement.blur(); }
-  function setMarker(latlng){ if(!map) return; if(marker){ marker.setLatLng(latlng); } else { marker = L.marker(latlng, { draggable:true }).addTo(map); marker.on('dragend', function(e){}); } }
-  function clearMarker(){ if(marker && map){ map.removeLayer(marker); marker=null; } }
-  function confirmMarker(){ if(!marker) return; var p=marker.getLatLng(); localStorage.setItem(savedKey, JSON.stringify({lat:p.lat, lng:p.lng})); }
-  document.addEventListener('click', function(e){ var t=e.target; if(!t) return; var btn = t.closest && t.closest('.map-button'); if(btn){ e.preventDefault && e.preventDefault(); openModal(); } }, false);
-  document.addEventListener('click', function(e){ var overlay=document.getElementById('mapModalOverlay'); if(!overlay || !overlay.classList.contains('show')) return; var container=document.getElementById('mapModalContainer'); if(container && !container.contains(e.target) && overlay.contains(e.target)){ closeModal(); } }, true);
-  document.addEventListener('click', function(e){ var id=(e.target && e.target.id) || (e.target && e.target.closest && e.target.closest('button') && e.target.closest('button').id); if(!id) return; if(id==='mapModalClose'){ closeModal(); } if(id==='mapModalClear'){ clearMarker(); localStorage.removeItem(savedKey); } if(id==='mapModalConfirm'){ confirmMarker(); } }, false);
-  document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ var overlay=document.getElementById('mapModalOverlay'); if(overlay && overlay.classList.contains('show')) closeModal(); } });
-})();
-</script></body>
+</body>
 </html>
