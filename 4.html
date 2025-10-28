@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gratulacje!</title>
+  <style>
+    body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw; max-width: 600px; margin: auto; text-align: center; }
+    h1 { font-size: 6vw; }
+    p { font-size: 4.5vw; }
+    input[type="text"] { width: 90%; padding: 3vw; font-size: 4.5vw; border-radius: 8px; border: 1px solid #007acc; }
+    button.main { margin-top: 4vw; background-color: #007acc; color: white; border: none; padding: 3vw 6vw; border-radius: 10px; font-size: 4.5vw; cursor: pointer; }
+    .correct { color: green; }
+    .wrong { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Gratulacje!</h1>
+  <p id="teamDisplay"></p>
+  <p>Zebrane litery:</p>
+  <h2 id="lettersDisplay"></h2>
+
+  <p>Ułóż z nich hasło:</p>
+  <input type="text" id="finalAnswer" placeholder="Twoje hasło...">
+  <br>
+  <button class="main" id="checkFinal">Sprawdź</button>
+  <p id="message"></p>
+
+  <script>
+    const teamName = localStorage.getItem("teamName") || "Nieznana drużyna";
+    document.getElementById("teamDisplay").textContent = "Drużyna: " + teamName;
+
+    const letters = JSON.parse(localStorage.getItem("letters") || "[]");
+    document.getElementById("lettersDisplay").textContent = letters.join(" ");
+
+    const correctFinal = "TEK"; // ⚙️ zmień końcowe poprawne hasło tutaj
+    const input = document.getElementById("finalAnswer");
+    const msg = document.getElementById("message");
+
+    document.getElementById("checkFinal").addEventListener("click", () => {
+      const ans = input.value.trim().toUpperCase();
+      if (ans === correctFinal) {
+        msg.textContent = "🎉 Brawo! Hasło poprawne!";
+        msg.className = "correct";
+        input.disabled = true;
+        document.getElementById("checkFinal").disabled = true;
+      } else {
+        msg.textContent = "❌ Spróbuj ponownie.";
+        msg.className = "wrong";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -3,36 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zagadka 3 (quiz)</title>
+  <title>Zagadka 3</title>
   <style>
-    body { 
-      font-family: Verdana, sans-serif; 
-      background-color: #f0f8ff; 
-      padding: 5vw; 
-      max-width: 600px; 
-      margin: auto; 
-      text-align: center;
-      position: relative;
-    }
-    h1 { font-size: 6vw; margin-bottom: 3vw; }
-    p { font-size: 4.5vw; margin-bottom: 4vw; }
-    input[type="text"], input[type="number"] { 
-      width: 90%; 
-      padding: 3vw; 
-      font-size: 4.5vw;
-      border-radius: 8px;
-      border: 1px solid #007acc;
-    }
-    button.main { 
-      margin-top: 4vw; 
-      background-color: #007acc; 
-      color: white; 
-      border: none; 
-      padding: 3vw 6vw; 
-      border-radius: 10px; 
-      font-size: 4.5vw;
-      cursor: pointer;
-    }
+    
     .map-button {
       position: fixed;
       top: 5vw;
@@ -86,24 +59,18 @@
     }
     .menu.open { padding: 3vw 4vw; max-height: 80vh; }
     .menu img { max-width: 100%; border-radius: 8px; display:block; margin:0 auto; }
+body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw; max-width: 600px; margin: auto; text-align: center; }
+    h1 { font-size: 6vw; }
+    p { font-size: 4.5vw; }
     label { display: block; margin: 2vw 0; text-align: left; font-size: 4.5vw; }
-    .correct { color: green; font-size: 4.5vw; }
-    .wrong { color: red; font-size: 4.5vw; }
-    .hidden { display: none; }
-    @media (min-width: 700px) {
-      h1 { font-size: 28px; }
-      p, input, button, label { font-size: 18px; }
-      input { padding: 10px; }
-      .map-button { width: 60px; height: 60px; }
-      .tooltip { font-size: 14px; top: 12px; right: 80px; }
-    }
-</style>
+    button.main { margin-top: 4vw; background-color: #007acc; color: white; border: none; padding: 3vw 6vw; border-radius: 10px; font-size: 4.5vw; cursor: pointer; }
+    .correct { color: green; }
+    .wrong { color: red; }
+  </style>
 </head>
 <body>
   <h1>Zagadka 3</h1>
-  <p>Które z poniższych zwierząt potrafi latać?</p>
-
-  
+  <p id="teamDisplay"></p>
   <button class="map-button" id="menuToggle" aria-expanded="false" aria-label="Mapa">
     <!-- SVG map icon -->
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -159,68 +126,80 @@
     })();
   </script>
 
+  <p>Które z poniższych zwierząt potrafi latać?</p>
 
-  <form id="quiz" style="display: inline-block; text-align: left; width: 90%;">
+  <form id="quiz" style="display:inline-block;text-align:left;width:90%;">
     <label><input type="radio" name="answer" value="A"> A) Kot</label>
     <label><input type="radio" name="answer" value="B"> B) Nietoperz</label>
     <label><input type="radio" name="answer" value="C"> C) Delfin</label>
     <label><input type="radio" name="answer" value="D"> D) Żółw</label>
   </form>
   <br>
-  <button id="checkBtn" class="main" onclick="checkAnswer()">Sprawdź</button>
+  <button id="checkBtn" class="main">Sprawdź</button>
 
-  <p id="message" class="hidden"></p>
-  <div id="next" class="hidden"></div>
+  <p id="message"></p>
+  <div id="next"></div>
 
   <script>
     const correctAnswer = "B";
-    let attempts = 0;
+    const letter = "T"; // ⚙️ litera do hasła
+    const nextPage = "4.html";
     const maxAttempts = 2;
-    const message = document.getElementById("message");
+
+    const teamName = localStorage.getItem("teamName");
+    document.getElementById("teamDisplay").textContent = "Drużyna: " + (teamName || "(brak)");
+
+    let attempts = Number(localStorage.getItem("attempts3") || 0);
+    const done = localStorage.getItem("done3");
+
+    const msg = document.getElementById("message");
     const next = document.getElementById("next");
     const checkBtn = document.getElementById("checkBtn");
     const options = document.querySelectorAll('input[name="answer"]');
 
     function disableQuiz() {
-      options.forEach(opt => opt.disabled = true);
-      checkBtn.classList.add("hidden");
+      options.forEach(o => o.disabled = true);
+      checkBtn.style.display = "none";
     }
 
-    function endGame(hasLetter) {
+    if (done) {
       disableQuiz();
-      if (hasLetter) {
-        message.classList.add("hidden");
-        next.innerHTML = '<p class="correct">Litera do hasła: <strong>T</strong></p><a href="4.html"><button class="main">Dalej</button></a>';
-      } else {
-        next.innerHTML = '<a href="4.html"><button class="main">Dalej</button></a>';
-      }
-      next.classList.remove("hidden");
+      next.innerHTML = `<p class='correct'>Litera do hasła: <strong>${letter}</strong></p><a href='${nextPage}'><button class='main'>Dalej</button></a>`;
+    } else if (attempts >= maxAttempts) {
+      disableQuiz();
+      msg.textContent = "Wykorzystałeś wszystkie próby.";
+      msg.className = "wrong";
+      next.innerHTML = `<a href='${nextPage}'><button class='main'>Dalej</button></a>`;
     }
 
-    function checkAnswer() {
+    checkBtn.addEventListener("click", () => {
       const selected = document.querySelector('input[name="answer"]:checked');
       if (!selected) {
-        message.textContent = "Wybierz odpowiedź!";
-        message.className = "wrong";
-        message.classList.remove("hidden");
+        msg.textContent = "Wybierz odpowiedź!";
+        msg.className = "wrong";
         return;
       }
       attempts++;
+      localStorage.setItem("attempts3", attempts);
 
       if (selected.value === correctAnswer) {
-        message.classList.add("hidden");
-        endGame(true);
+        msg.textContent = '';
+        const letters = JSON.parse(localStorage.getItem("letters") || "[]");
+        if (!letters.includes(letter)) letters.push(letter);
+        localStorage.setItem("letters", JSON.stringify(letters));
+        localStorage.setItem("done3", "true");
+        disableQuiz();
+        next.innerHTML = `<p class='correct'>Litera do hasła: <strong>${letter}</strong></p><a href='${nextPage}'><button class='main'>Dalej</button></a>`;
       } else if (attempts < maxAttempts) {
-        message.textContent = "Błędna odpowiedź! Pozostało prób: " + (maxAttempts - attempts) + ".";
-        message.className = "wrong";
-        message.classList.remove("hidden");
+        msg.textContent = "Błędna odpowiedź! Pozostało prób: " + (maxAttempts - attempts);
+        msg.className = "wrong";
       } else {
-        message.textContent = "Wykorzystałeś wszystkie próby.";
-        message.className = "wrong";
-        message.classList.remove("hidden");
-        endGame(false);
+        msg.textContent = "Wykorzystałeś wszystkie próby.";
+        msg.className = "wrong";
+        disableQuiz();
+        next.innerHTML = `<a href='${nextPage}'><button class='main'>Dalej</button></a>`;
       }
-    }
+    });
   </script>
 </body>
 </html>

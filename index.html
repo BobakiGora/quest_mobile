@@ -5,34 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Witaj</title>
   <style>
-    body { 
-      font-family: Verdana, sans-serif; 
-      background-color: #f0f8ff; 
-      padding: 5vw; 
-      max-width: 600px; 
-      margin: auto; 
-      text-align: center;
-      position: relative;
-    }
-    h1 { font-size: 6vw; margin-bottom: 3vw; }
-    p { font-size: 4.5vw; margin-bottom: 4vw; }
-    input[type="text"], input[type="number"] { 
-      width: 90%; 
-      padding: 3vw; 
-      font-size: 4.5vw;
-      border-radius: 8px;
-      border: 1px solid #007acc;
-    }
-    button.main { 
-      margin-top: 4vw; 
-      background-color: #007acc; 
-      color: white; 
-      border: none; 
-      padding: 3vw 6vw; 
-      border-radius: 10px; 
-      font-size: 4.5vw;
-      cursor: pointer;
-    }
+    
     .map-button {
       position: fixed;
       top: 5vw;
@@ -86,23 +59,16 @@
     }
     .menu.open { padding: 3vw 4vw; max-height: 80vh; }
     .menu img { max-width: 100%; border-radius: 8px; display:block; margin:0 auto; }
-    label { display: block; margin: 2vw 0; text-align: left; font-size: 4.5vw; }
-    .correct { color: green; font-size: 4.5vw; }
-    .wrong { color: red; font-size: 4.5vw; }
-    .hidden { display: none; }
-    @media (min-width: 700px) {
-      h1 { font-size: 28px; }
-      p, input, button, label { font-size: 18px; }
-      input { padding: 10px; }
-      .map-button { width: 60px; height: 60px; }
-      .tooltip { font-size: 14px; top: 12px; right: 80px; }
-    }
-</style>
+body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw; max-width: 600px; margin: auto; text-align: center; position: relative; }
+    h1 { font-size: 6vw; margin-bottom: 3vw; }
+    p { font-size: 4.5vw; margin-bottom: 4vw; }
+    input[type="text"] { width: 90%; padding: 3vw; font-size: 4.5vw; border-radius: 8px; border: 1px solid #007acc; }
+    button.main { margin-top: 4vw; background-color: #007acc; color: white; border: none; padding: 3vw 6vw; border-radius: 10px; font-size: 4.5vw; cursor: pointer; }
+  </style>
 </head>
 <body>
   <h1>Witaj!</h1>
   <p>Zapraszamy na oleśnicką grę terenową!</p>
-  
   <button class="map-button" id="menuToggle" aria-expanded="false" aria-label="Mapa">
     <!-- SVG map icon -->
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -158,6 +124,37 @@
     })();
   </script>
 
-  <a href="1.html"><button class="main">Zaczynajmy!</button></a>
+
+  <p>Wpisz nazwę swojej drużyny:</p>
+  <input type="text" id="teamName" placeholder="Nazwa drużyny">
+  <br>
+  <button class="main" id="startBtn" disabled>Zaczynajmy!</button>
+
+  <script>
+    const input = document.getElementById("teamName");
+    const startBtn = document.getElementById("startBtn");
+
+    const savedName = localStorage.getItem("teamName");
+    if (savedName) {
+      input.value = savedName;
+      startBtn.disabled = false;
+    }
+
+    input.addEventListener("input", () => {
+      startBtn.disabled = input.value.trim() === "";
+    });
+
+    startBtn.addEventListener("click", () => {
+      const newName = input.value.trim();
+      const oldName = localStorage.getItem("teamName");
+      if (oldName !== newName) {
+        // Reset tylko przy zmianie nazwy drużyny
+        localStorage.clear();
+        localStorage.setItem("teamName", newName);
+        localStorage.setItem("letters", JSON.stringify([]));
+      }
+      window.location.href = "1.html";
+    });
+  </script>
 </body>
 </html>

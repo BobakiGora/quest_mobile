@@ -5,34 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zagadka 1</title>
   <style>
-    body { 
-      font-family: Verdana, sans-serif; 
-      background-color: #f0f8ff; 
-      padding: 5vw; 
-      max-width: 600px; 
-      margin: auto; 
-      text-align: center;
-      position: relative;
-    }
-    h1 { font-size: 6vw; margin-bottom: 3vw; }
-    p { font-size: 4.5vw; margin-bottom: 4vw; }
-    input[type="text"], input[type="number"] { 
-      width: 90%; 
-      padding: 3vw; 
-      font-size: 4.5vw;
-      border-radius: 8px;
-      border: 1px solid #007acc;
-    }
-    button.main { 
-      margin-top: 4vw; 
-      background-color: #007acc; 
-      color: white; 
-      border: none; 
-      padding: 3vw 6vw; 
-      border-radius: 10px; 
-      font-size: 4.5vw;
-      cursor: pointer;
-    }
+    
     .map-button {
       position: fixed;
       top: 5vw;
@@ -86,24 +59,18 @@
     }
     .menu.open { padding: 3vw 4vw; max-height: 80vh; }
     .menu img { max-width: 100%; border-radius: 8px; display:block; margin:0 auto; }
-    label { display: block; margin: 2vw 0; text-align: left; font-size: 4.5vw; }
-    .correct { color: green; font-size: 4.5vw; }
-    .wrong { color: red; font-size: 4.5vw; }
-    .hidden { display: none; }
-    @media (min-width: 700px) {
-      h1 { font-size: 28px; }
-      p, input, button, label { font-size: 18px; }
-      input { padding: 10px; }
-      .map-button { width: 60px; height: 60px; }
-      .tooltip { font-size: 14px; top: 12px; right: 80px; }
-    }
-</style>
+body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw; max-width: 600px; margin: auto; text-align: center; }
+    h1 { font-size: 6vw; }
+    p { font-size: 4.5vw; }
+    input[type="text"] { width: 90%; padding: 3vw; font-size: 4.5vw; border-radius: 8px; border: 1px solid #007acc; }
+    button.main { margin-top: 4vw; background-color: #007acc; color: white; border: none; padding: 3vw 6vw; border-radius: 10px; font-size: 4.5vw; cursor: pointer; }
+    .correct { color: green; }
+    .wrong { color: red; }
+  </style>
 </head>
 <body>
   <h1>Zagadka 1</h1>
-  <p>Jakie zwierzę miało trzy głowy w mitologii greckiej?</p>
-
-  
+  <p id="teamDisplay"></p>
   <button class="map-button" id="menuToggle" aria-expanded="false" aria-label="Mapa">
     <!-- SVG map icon -->
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -159,37 +126,51 @@
     })();
   </script>
 
+  <p>Jakie zwierzę miało trzy głowy w mitologii greckiej?</p>
 
   <input type="text" id="answer" placeholder="Twoja odpowiedź...">
   <br>
-  <button id="checkBtn" class="main" onclick="checkAnswer()">Sprawdź</button>
+  <button id="checkBtn" class="main">Sprawdź</button>
 
-  <p id="message" class="hidden"></p>
-  <div id="next" class="hidden">
-    <p class="correct">Litera do hasła: <strong>E</strong></p>
-    <a href="2.html"><button class="main">Przejdź dalej</button></a>
-  </div>
+  <p id="message"></p>
+  <div id="next"></div>
 
   <script>
-    const correctAnswer = "cerber"; 
-    const answerInput = document.getElementById("answer");
-    const message = document.getElementById("message");
+    const correctAnswer = "cerber";
+    const letter = "E"; // ⚙️ litera do hasła
+    const nextPage = "2.html";
+
+    const teamName = localStorage.getItem("teamName");
+    document.getElementById("teamDisplay").textContent = "Drużyna: " + (teamName || "(brak)");
+
+    const done = localStorage.getItem("done1");
+    const input = document.getElementById("answer");
+    const msg = document.getElementById("message");
     const next = document.getElementById("next");
     const checkBtn = document.getElementById("checkBtn");
 
-    function checkAnswer() {
-      const userAnswer = answerInput.value.trim().toLowerCase();
-      if (userAnswer === correctAnswer) {
-        message.classList.add("hidden");
-        next.classList.remove("hidden");
-        answerInput.disabled = true;
-        checkBtn.classList.add("hidden");
-      } else {
-        message.textContent = "Spróbuj ponownie.";
-        message.className = "wrong";
-        message.classList.remove("hidden");
-      }
+    if (done) {
+      input.disabled = true;
+      checkBtn.style.display = "none";
+      next.innerHTML = `<p class='correct'>Litera do hasła: <strong>${letter}</strong></p><a href='${nextPage}'><button class='main'>Dalej</button></a>`;
     }
+
+    checkBtn.addEventListener("click", () => {
+      const ans = input.value.trim().toLowerCase();
+      if (ans === correctAnswer) {
+        msg.textContent = '';
+        const letters = JSON.parse(localStorage.getItem("letters") || "[]");
+        if (!letters.includes(letter)) letters.push(letter);
+        localStorage.setItem("letters", JSON.stringify(letters));
+        localStorage.setItem("done1", "true");
+        input.disabled = true;
+        checkBtn.style.display = "none";
+        next.innerHTML = `<p class='correct'>Litera do hasła: <strong>${letter}</strong></p><a href='${nextPage}'><button class='main'>Dalej</button></a>`;
+      } else {
+        msg.textContent = "Spróbuj ponownie.";
+        msg.className = "wrong";
+      }
+    });
   </script>
 </body>
 </html>
