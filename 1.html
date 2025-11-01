@@ -5,8 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zagadka 1</title>
   <style>
-    
-    .map-button {
+    body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw; max-width: 600px; margin: auto; text-align: center; }
+
+    /* --- przyciski --- */
+    .map-button, .skip-button {
+      position: fixed;
+      top: 5vw;
+      width: 14vw;
+      height: 14vw;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 1000;
+      transition: transform 120ms ease, background-color 0.2s;
+    }
+    .map-button { right: 5vw; }
+    .skip-button { left: 5vw; }
+    .map-button:active, .skip-button:active { transform: scale(0.96); }
+    .map-button svg, .skip-button svg { width: 60%; height: 60%; fill: white; }
+
+    /* popup */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .overlay.show { display: flex; animation: fadeIn 0.25s ease; }
+    .confirmBox {
+      background: #fff;
+      border-radius: 12px;
+      padding: 5vw;
+      text-align: center;
+      width: 80%;
+      max-width: 400px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    .confirmBox p { font-size: 4.5vw; margin-bottom: 3vw; }
+    .confirmBox .buttons { display: flex; gap: 3vw; justify-content: center; }
+    @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+
+    h1 { font-size: 6vw; }
+    p { font-size: 4.5vw; }
+    input[type="text"] { width: 90%; padding: 3vw; font-size: 4.5vw; border-radius: 8px; border: 1px solid #007acc; }
+    button.main { margin-top: 4vw; background-color: #007acc; color: white; border: none; padding: 3vw 6vw; border-radius: 10px; font-size: 4.5vw; cursor: pointer; }
+    .correct { color: green; }
+    .wrong { color: red; }
+   .map-button {
       position: fixed;
       top: 5vw;
       right: 5vw;
@@ -59,73 +113,40 @@
     }
     .menu.open { padding: 3vw 4vw; max-height: 80vh; }
     .menu img { max-width: 100%; border-radius: 8px; display:block; margin:0 auto; }
-body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw; max-width: 600px; margin: auto; text-align: center; }
-    h1 { font-size: 6vw; }
-    p { font-size: 4.5vw; }
-    input[type="text"] { width: 90%; padding: 3vw; font-size: 4.5vw; border-radius: 8px; border: 1px solid #007acc; }
-    button.main { margin-top: 4vw; background-color: #007acc; color: white; border: none; padding: 3vw 6vw; border-radius: 10px; font-size: 4.5vw; cursor: pointer; }
-    .correct { color: green; }
-    .wrong { color: red; }
+
+
   </style>
 </head>
 <body>
-  <h1>Zagadka 1</h1>
-  <p id="teamDisplay"></p>
-  <button class="map-button" id="menuToggle" aria-expanded="false" aria-label="Mapa">
-    <!-- SVG map icon -->
+  <!-- przyciski -->
+  <button class="skip-button" id="skipBtn" aria-label="Pomiń zagadkę">
+    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+  </button>
+  <button class="map-button" id="menuToggle" aria-label="Mapa">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path d="M20.5 3l-5.3 2.2L9 3 3.5 5v15l6.2-2.5L15 20l5.5-2.5V3zM9 5.1l5.5 1.9 5-2.1v11.6l-5 2.3L9 17.9V5.1z"></path>
     </svg>
   </button>
   <div class="tooltip" id="mapTooltip" role="status" aria-hidden="true">Mapa</div>
-  <div class="menu" id="menu" aria-hidden="true">
-    <img src="obraz.jpg" alt="Mapa">
+<div class="menu" id="menu" aria-hidden="true">
+  <img src="obraz.jpg" alt="Mapa">
+</div>
+
+  
+
+  <!-- popup -->
+  <div id="confirmOverlay" class="overlay">
+    <div class="confirmBox">
+      <p>Czy na pewno chcesz pominąć tę zagadkę?<br><small>Nie będzie można już do niej wrócić.</small></p>
+      <div class="buttons">
+        <button id="confirmYes" class="main">Tak</button>
+        <button id="confirmNo" class="main" style="background-color:#999;">Nie</button>
+      </div>
+    </div>
   </div>
 
-  <script>
-    (function() {
-      const toggle = document.getElementById('menuToggle');
-      const menu = document.getElementById('menu');
-      const tooltip = document.getElementById('mapTooltip');
-      let tooltipTimeout;
-
-      function showTooltip() {
-        tooltip.classList.add('show');
-        tooltip.setAttribute('aria-hidden','false');
-        clearTimeout(tooltipTimeout);
-        tooltipTimeout = setTimeout(() => {
-          tooltip.classList.remove('show');
-          tooltip.setAttribute('aria-hidden','true');
-        }, 1600);
-      }
-
-      toggle.addEventListener('mouseenter', showTooltip);
-      toggle.addEventListener('focus', showTooltip);
-      // touch: show tooltip briefly on first tap
-      toggle.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        showTooltip();
-      }, {passive:true});
-
-      toggle.addEventListener('click', (e) => {
-        const isOpen = menu.classList.toggle('open');
-        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        menu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-      });
-
-      // close menu when tapping outside
-      document.addEventListener('click', (e) => {
-        if (!menu.contains(e.target) && !toggle.contains(e.target)) {
-          if (menu.classList.contains('open')) {
-            menu.classList.remove('open');
-            toggle.setAttribute('aria-expanded','false');
-            menu.setAttribute('aria-hidden','true');
-          }
-        }
-      });
-    })();
-  </script>
-
+  <h1>Zagadka 1</h1>
+  <p id="teamDisplay"></p>
   <p>Jakie zwierzę miało trzy głowy w mitologii greckiej?</p>
 
   <input type="text" id="answer" placeholder="Twoja odpowiedź...">
@@ -137,40 +158,119 @@ body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw
 
   <script>
     const correctAnswer = "cerber";
-    const letter = "E"; // ⚙️ litera do hasła
+    const letter = "E";
     const nextPage = "2.html";
+
+    const input = document.getElementById("answer");
+    const msg = document.getElementById("message");
+    const next = document.getElementById("next");
+    const checkBtn = document.getElementById("checkBtn");
+    const skipBtn = document.getElementById("skipBtn");
+    const overlay = document.getElementById("confirmOverlay");
+    const yesBtn = document.getElementById("confirmYes");
+    const noBtn = document.getElementById("confirmNo");
 
     const teamName = localStorage.getItem("teamName");
     document.getElementById("teamDisplay").textContent = "Drużyna: " + (teamName || "(brak)");
 
     const done = localStorage.getItem("done1");
-    const input = document.getElementById("answer");
-    const msg = document.getElementById("message");
-    const next = document.getElementById("next");
-    const checkBtn = document.getElementById("checkBtn");
 
-    if (done) {
+    function block() {
       input.disabled = true;
       checkBtn.style.display = "none";
+      skipBtn.style.display = "none";
+    }
+
+    if (done === "true") {
+      block();
       next.innerHTML = `<p class='correct'>Litera do hasła: <strong>${letter}</strong></p><a href='${nextPage}'><button class='main'>Dalej</button></a>`;
+    } else if (done === "skipped") {
+      block();
+      msg.innerHTML = "<p class='wrong'>Zagadka pominięta.</p>";
+      next.innerHTML = `<a href='${nextPage}'><button class='main'>Dalej</button></a>`;
     }
 
     checkBtn.addEventListener("click", () => {
-      const ans = input.value.trim().toLowerCase();
-      if (ans === correctAnswer) {
-        msg.textContent = '';
-        const letters = JSON.parse(localStorage.getItem("letters") || "[]");
-        if (!letters.includes(letter)) letters.push(letter);
-        localStorage.setItem("letters", JSON.stringify(letters));
-        localStorage.setItem("done1", "true");
-        input.disabled = true;
-        checkBtn.style.display = "none";
-        next.innerHTML = `<p class='correct'>Litera do hasła: <strong>${letter}</strong></p><a href='${nextPage}'><button class='main'>Dalej</button></a>`;
-      } else {
-        msg.textContent = "Spróbuj ponownie.";
-        msg.className = "wrong";
-      }
+  const ans = input.value.trim().toLowerCase();
+  if (ans === correctAnswer) {
+    msg.textContent = "";
+    msg.className = "";
+    const letters = JSON.parse(localStorage.getItem("letters") || "[]");
+    if (!letters.includes(letter)) letters.push(letter);
+    localStorage.setItem("letters", JSON.stringify(letters));
+    localStorage.setItem("done1", "true");
+    input.disabled = true;
+    checkBtn.style.display = "none";
+    skipBtn.style.display = "none";
+    next.innerHTML = `<p class='correct'>Litera do hasła: <strong>${letter}</strong></p>
+                      <a href='${nextPage}'><button class='main'>Dalej</button></a>`;
+  } else {
+    msg.textContent = "Spróbuj ponownie.";
+    msg.className = "wrong";
+  }
+});
+
+
+    // skip logic
+    skipBtn.addEventListener("click", () => overlay.classList.add("show"));
+    noBtn.addEventListener("click", () => overlay.classList.remove("show"));
+    yesBtn.addEventListener("click", () => {
+      localStorage.setItem("done1", "skipped");
+      // dodaj "-" do listy liter, jeśli zagadka pominięta
+    const letters = JSON.parse(localStorage.getItem("letters") || "[]");
+    letters.push("-");
+    localStorage.setItem("letters", JSON.stringify(letters));
+
+      overlay.querySelector(".confirmBox").innerHTML = "<p class='wrong'>Zagadka pominięta.</p>";
+      setTimeout(() => { window.location.href = nextPage; }, 1500);
     });
   </script>
+
+  <!-- Obsługa przycisku mapy -->
+<script>
+  (function() {
+    const toggle = document.getElementById('menuToggle');
+    const menu = document.getElementById('menu');
+    const tooltip = document.getElementById('mapTooltip');
+    let tooltipTimeout;
+
+    function showTooltip() {
+      if (!tooltip) return;
+      tooltip.classList.add('show');
+      tooltip.setAttribute('aria-hidden','false');
+      clearTimeout(tooltipTimeout);
+      tooltipTimeout = setTimeout(() => {
+        tooltip.classList.remove('show');
+        tooltip.setAttribute('aria-hidden','true');
+      }, 1600);
+    }
+
+    if (toggle && menu) {
+      toggle.addEventListener('mouseenter', showTooltip);
+      toggle.addEventListener('focus', showTooltip);
+      toggle.addEventListener('touchstart', e => {
+        e.stopPropagation();
+        showTooltip();
+      }, {passive:true});
+
+      toggle.addEventListener('click', e => {
+        const isOpen = menu.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        menu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      });
+
+      document.addEventListener('click', e => {
+        if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+          if (menu.classList.contains('open')) {
+            menu.classList.remove('open');
+            toggle.setAttribute('aria-expanded','false');
+            menu.setAttribute('aria-hidden','true');
+          }
+        }
+      });
+    }
+  })();
+</script>
+
 </body>
 </html>

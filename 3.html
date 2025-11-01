@@ -5,7 +5,61 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zagadka 3</title>
   <style>
-    
+    body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw; max-width: 600px; margin: auto; text-align: center; }
+
+    /* --- przyciski --- */
+    .map-button, .skip-button {
+      position: fixed;
+      top: 5vw;
+      width: 14vw;
+      height: 14vw;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 1000;
+      transition: transform 120ms ease, background-color 0.2s;
+    }
+    .map-button { right: 5vw; }
+    .skip-button { left: 5vw; }
+    .map-button:active, .skip-button:active { transform: scale(0.96); }
+    .map-button svg, .skip-button svg { width: 60%; height: 60%; fill: white; }
+
+    /* popup */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .overlay.show { display: flex; animation: fadeIn 0.25s ease; }
+    .confirmBox {
+      background: #fff;
+      border-radius: 12px;
+      padding: 5vw;
+      text-align: center;
+      width: 80%;
+      max-width: 400px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    .confirmBox p { font-size: 4.5vw; margin-bottom: 3vw; }
+    .confirmBox .buttons { display: flex; gap: 3vw; justify-content: center; }
+    @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+
+    h1 { font-size: 6vw; }
+    p { font-size: 4.5vw; }
+    label { display: block; margin: 2vw 0; text-align: left; font-size: 4.5vw; }
+    button.main { margin-top: 4vw; background-color: #007acc; color: white; border: none; padding: 3vw 6vw; border-radius: 10px; font-size: 4.5vw; cursor: pointer; }
+    .correct { color: green; }
+    .wrong { color: red; }
     .map-button {
       position: fixed;
       top: 5vw;
@@ -59,20 +113,14 @@
     }
     .menu.open { padding: 3vw 4vw; max-height: 80vh; }
     .menu img { max-width: 100%; border-radius: 8px; display:block; margin:0 auto; }
-body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw; max-width: 600px; margin: auto; text-align: center; }
-    h1 { font-size: 6vw; }
-    p { font-size: 4.5vw; }
-    label { display: block; margin: 2vw 0; text-align: left; font-size: 4.5vw; }
-    button.main { margin-top: 4vw; background-color: #007acc; color: white; border: none; padding: 3vw 6vw; border-radius: 10px; font-size: 4.5vw; cursor: pointer; }
-    .correct { color: green; }
-    .wrong { color: red; }
   </style>
 </head>
 <body>
-  <h1>Zagadka 3</h1>
-  <p id="teamDisplay"></p>
-  <button class="map-button" id="menuToggle" aria-expanded="false" aria-label="Mapa">
-    <!-- SVG map icon -->
+  <!-- przyciski -->
+  <button class="skip-button" id="skipBtn" aria-label="Pomiń zagadkę">
+    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+  </button>
+  <button class="map-button" id="menuToggle" aria-label="Mapa">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path d="M20.5 3l-5.3 2.2L9 3 3.5 5v15l6.2-2.5L15 20l5.5-2.5V3zM9 5.1l5.5 1.9 5-2.1v11.6l-5 2.3L9 17.9V5.1z"></path>
     </svg>
@@ -126,6 +174,19 @@ body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw
     })();
   </script>
 
+  <!-- popup -->
+  <div id="confirmOverlay" class="overlay">
+    <div class="confirmBox">
+      <p>Czy na pewno chcesz pominąć tę zagadkę?<br><small>Nie będzie można już do niej wrócić.</small></p>
+      <div class="buttons">
+        <button id="confirmYes" class="main">Tak</button>
+        <button id="confirmNo" class="main" style="background-color:#999;">Nie</button>
+      </div>
+    </div>
+  </div>
+
+  <h1>Zagadka 3</h1>
+  <p id="teamDisplay"></p>
   <p>Które z poniższych zwierząt potrafi latać?</p>
 
   <form id="quiz" style="display:inline-block;text-align:left;width:90%;">
@@ -142,9 +203,18 @@ body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw
 
   <script>
     const correctAnswer = "B";
-    const letter = "T"; // ⚙️ litera do hasła
+    const letter = "T";
     const nextPage = "4.html";
     const maxAttempts = 2;
+
+    const msg = document.getElementById("message");
+    const next = document.getElementById("next");
+    const checkBtn = document.getElementById("checkBtn");
+    const skipBtn = document.getElementById("skipBtn");
+    const overlay = document.getElementById("confirmOverlay");
+    const yesBtn = document.getElementById("confirmYes");
+    const noBtn = document.getElementById("confirmNo");
+    const options = document.querySelectorAll('input[name="answer"]');
 
     const teamName = localStorage.getItem("teamName");
     document.getElementById("teamDisplay").textContent = "Drużyna: " + (teamName || "(brak)");
@@ -152,53 +222,80 @@ body { font-family: Verdana, sans-serif; background-color: #f0f8ff; padding: 5vw
     let attempts = Number(localStorage.getItem("attempts3") || 0);
     const done = localStorage.getItem("done3");
 
-    const msg = document.getElementById("message");
-    const next = document.getElementById("next");
-    const checkBtn = document.getElementById("checkBtn");
-    const options = document.querySelectorAll('input[name="answer"]');
-
     function disableQuiz() {
       options.forEach(o => o.disabled = true);
       checkBtn.style.display = "none";
+      skipBtn.style.display = "none";
     }
 
-    if (done) {
+    if (done === "true") {
       disableQuiz();
       next.innerHTML = `<p class='correct'>Litera do hasła: <strong>${letter}</strong></p><a href='${nextPage}'><button class='main'>Dalej</button></a>`;
+    } else if (done === "skipped") {
+      disableQuiz();
+      msg.innerHTML = "<p class='wrong'>Zagadka pominięta.</p>";
+      next.innerHTML = `<a href='${nextPage}'><button class='main'>Dalej</button></a>`;
     } else if (attempts >= maxAttempts) {
       disableQuiz();
       msg.textContent = "Wykorzystałeś wszystkie próby.";
+      // dodaj "-" do listy liter, jeśli limit prób wykorzystany
+const letters = JSON.parse(localStorage.getItem("letters") || "[]");
+letters.push("-");
+localStorage.setItem("letters", JSON.stringify(letters));
+
       msg.className = "wrong";
       next.innerHTML = `<a href='${nextPage}'><button class='main'>Dalej</button></a>`;
     }
 
     checkBtn.addEventListener("click", () => {
-      const selected = document.querySelector('input[name="answer"]:checked');
-      if (!selected) {
-        msg.textContent = "Wybierz odpowiedź!";
-        msg.className = "wrong";
-        return;
-      }
-      attempts++;
-      localStorage.setItem("attempts3", attempts);
+  const selected = document.querySelector('input[name="answer"]:checked');
+  if (!selected) {
+    msg.textContent = "Wybierz odpowiedź!";
+    msg.className = "wrong";
+    return;
+  }
+  attempts++;
+  localStorage.setItem("attempts3", attempts);
 
-      if (selected.value === correctAnswer) {
-        msg.textContent = '';
-        const letters = JSON.parse(localStorage.getItem("letters") || "[]");
-        if (!letters.includes(letter)) letters.push(letter);
-        localStorage.setItem("letters", JSON.stringify(letters));
-        localStorage.setItem("done3", "true");
-        disableQuiz();
-        next.innerHTML = `<p class='correct'>Litera do hasła: <strong>${letter}</strong></p><a href='${nextPage}'><button class='main'>Dalej</button></a>`;
-      } else if (attempts < maxAttempts) {
-        msg.textContent = "Błędna odpowiedź! Pozostało prób: " + (maxAttempts - attempts);
-        msg.className = "wrong";
-      } else {
-        msg.textContent = "Wykorzystałeś wszystkie próby.";
-        msg.className = "wrong";
-        disableQuiz();
-        next.innerHTML = `<a href='${nextPage}'><button class='main'>Dalej</button></a>`;
-      }
+  if (selected.value === correctAnswer) {
+    msg.textContent = "";
+    msg.className = "";
+    const letters = JSON.parse(localStorage.getItem("letters") || "[]");
+    if (!letters.includes(letter)) letters.push(letter);
+    localStorage.setItem("letters", JSON.stringify(letters));
+    localStorage.setItem("done3", "true");
+    disableQuiz();
+    next.innerHTML = `<p class='correct'>Litera do hasła: <strong>${letter}</strong></p>
+                      <a href='${nextPage}'><button class='main'>Dalej</button></a>`;
+  } else if (attempts < maxAttempts) {
+    msg.textContent = "Błędna odpowiedź! Pozostało prób: " + (maxAttempts - attempts);
+    msg.className = "wrong";
+  } else {
+    msg.textContent = "Wykorzystałeś wszystkie próby.";
+    // dodaj "-" do listy liter, jeśli limit prób wykorzystany
+const letters = JSON.parse(localStorage.getItem("letters") || "[]");
+letters.push("-");
+localStorage.setItem("letters", JSON.stringify(letters));
+
+    msg.className = "wrong";
+    disableQuiz();
+    next.innerHTML = `<a href='${nextPage}'><button class='main'>Dalej</button></a>`;
+  }
+});
+
+
+    // skip logic
+    skipBtn.addEventListener("click", () => overlay.classList.add("show"));
+    noBtn.addEventListener("click", () => overlay.classList.remove("show"));
+    yesBtn.addEventListener("click", () => {
+      localStorage.setItem("done3", "skipped");
+      // dodaj "-" do listy liter, jeśli zagadka pominięta
+const letters = JSON.parse(localStorage.getItem("letters") || "[]");
+letters.push("-");
+localStorage.setItem("letters", JSON.stringify(letters));
+
+      overlay.querySelector(".confirmBox").innerHTML = "<p class='wrong'>Zagadka pominięta.</p>";
+      setTimeout(() => { window.location.href = nextPage; }, 1500);
     });
   </script>
 </body>
